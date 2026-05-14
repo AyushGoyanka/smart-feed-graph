@@ -1,0 +1,184 @@
+.chat-container{
+  width: 350px;
+  height: 600px;
+  background: #111827;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  color: white;
+}
+
+.chat-container h2{
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.chat-box{
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: #1f2937;
+  border-radius: 10px;
+}
+
+.user-msg{
+  background: #2563eb;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 10px;
+  text-align: right;
+}
+
+.bot-msg{
+  background: #374151;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 10px;
+}
+
+.chat-input{
+  display: flex;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.chat-input input{
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+}
+
+.chat-input button{
+  padding: 10px 15px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+.chat-container {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #111827;
+
+  color: white;
+
+  border-radius: 18px;
+
+  overflow: hidden;
+}
+
+.chat-container h2 {
+  text-align: center;
+
+  padding: 18px;
+
+  background: #1f2937;
+
+  font-size: 28px;
+
+  font-weight: bold;
+}
+
+.chat-box {
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding: 15px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 15px;
+}
+
+.user-msg {
+  align-self: flex-end;
+
+  background: #2563eb;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  max-width: 80%;
+
+  font-size: 16px;
+}
+
+.bot-msg {
+  align-self: flex-start;
+
+  background: #374151;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  max-width: 90%;
+
+  font-size: 16px;
+
+  line-height: 1.6;
+}
+
+.chat-input {
+  display: flex;
+
+  padding: 14px;
+
+  gap: 10px;
+
+  background: #1f2937;
+}
+
+.chat-input input {
+  flex: 1;
+
+  padding: 12px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  font-size: 16px;
+
+  outline: none;
+}
+
+.chat-input button {
+  background: #2563eb;
+
+  color: white;
+
+  border: none;
+
+  padding: 12px 18px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  font-size: 16px;
+
+  font-weight: bold;
+}

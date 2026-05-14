@@ -1,35 +1,51 @@
 import { useEffect, useRef, useState } from "react";
 import "../styles/visualizer.css";
+import AIChat from "../components/AIChat";
 
 const DFSVisualizer = () => {
   const canvasRef = useRef(null);
 
+  // GRAPH STATES
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
 
+  // DFS STATES
   const [startNode, setStartNode] =
     useState(0);
 
   const [result, setResult] = useState([]);
 
-  const [speed, setSpeed] =
-    useState(1000);
-
-  const [graphType, setGraphType] =
-    useState("directed");
-
+  // VISUAL STATES
   const [visitedNodes, setVisitedNodes] =
     useState([]);
 
   const [activeEdges, setActiveEdges] =
     useState([]);
 
-  // Initial Graph
+  // SETTINGS
+  const [speed, setSpeed] =
+    useState(1000);
+
+  const [graphType, setGraphType] =
+    useState("directed");
+
+  // CHATBOT
+  const [showChat, setShowChat] =
+    useState(false);
+
+  // MANUAL GRAPH
+  const [manualMode, setManualMode] =
+    useState(false);
+
+  const [selectedNode, setSelectedNode] =
+    useState(null);
+
+  // INITIAL GRAPH
   useEffect(() => {
     generateGraph("small");
   }, []);
 
-  // Redraw Graph
+  // REDRAW GRAPH
   useEffect(() => {
     drawGraph();
   }, [
@@ -38,16 +54,19 @@ const DFSVisualizer = () => {
     visitedNodes,
     activeEdges,
     graphType,
+    selectedNode,
   ]);
 
-  // Generate Graph
+  // GENERATE GRAPH
   const generateGraph = (size) => {
     const nodeCount =
       size === "small" ? 5 : 10;
 
     let tempNodes = [];
+
     let tempEdges = [];
 
+    // CREATE NODES
     for (let i = 0; i < nodeCount; i++) {
       tempNodes.push({
         id: i,
@@ -56,12 +75,12 @@ const DFSVisualizer = () => {
       });
     }
 
-    // Connected Graph
+    // CONNECT GRAPH
     for (let i = 0; i < nodeCount - 1; i++) {
       tempEdges.push([i, i + 1]);
     }
 
-    // Random Edges
+    // RANDOM EDGES
     for (let i = 0; i < nodeCount; i++) {
       let target = Math.floor(
         Math.random() * nodeCount
@@ -80,14 +99,81 @@ const DFSVisualizer = () => {
     }
 
     setNodes(tempNodes);
+
     setEdges(tempEdges);
 
-    setVisitedNodes([]);
-    setActiveEdges([]);
-    setResult([]);
+    resetGraph();
   };
 
-  // Draw Arrow
+  // MANUAL GRAPH CLICK
+  const handleCanvasClick = (e) => {
+    if (!manualMode) return;
+
+    const canvas = canvasRef.current;
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+    const x = e.clientX - rect.left;
+
+    const y = e.clientY - rect.top;
+
+    let clickedNode = null;
+
+    // CHECK NODE CLICK
+    for (let node of nodes) {
+      const distance = Math.sqrt(
+        (node.x - x) ** 2 +
+          (node.y - y) ** 2
+      );
+
+      if (distance < 25) {
+        clickedNode = node.id;
+        break;
+      }
+    }
+
+    // CREATE NEW NODE
+    if (clickedNode === null) {
+      const newNode = {
+        id: nodes.length,
+        x,
+        y,
+      };
+
+      setNodes([...nodes, newNode]);
+
+      return;
+    }
+
+    // SELECT NODE
+    if (selectedNode === null) {
+      setSelectedNode(clickedNode);
+    }
+
+    // CREATE EDGE
+    else {
+      const edgeExists = edges.some(
+        (edge) =>
+          edge[0] === selectedNode &&
+          edge[1] === clickedNode
+      );
+
+      if (
+        selectedNode !== clickedNode &&
+        !edgeExists
+      ) {
+        setEdges([
+          ...edges,
+          [selectedNode, clickedNode],
+        ]);
+      }
+
+      setSelectedNode(null);
+    }
+  };
+
+  // DRAW ARROW
   const drawArrow = (
     ctx,
     fromX,
@@ -100,17 +186,21 @@ const DFSVisualizer = () => {
     const headLength = 10;
 
     const dx = toX - fromX;
+
     const dy = toY - fromY;
 
     const angle = Math.atan2(dy, dx);
 
     const offsetX = Math.cos(angle) * 22;
+
     const offsetY = Math.sin(angle) * 22;
 
     const startX = fromX + offsetX;
+
     const startY = fromY + offsetY;
 
     const endX = toX - offsetX;
+
     const endY = toY - offsetY;
 
     ctx.beginPath();
@@ -125,7 +215,7 @@ const DFSVisualizer = () => {
 
     ctx.stroke();
 
-    // Arrow Head
+    // ARROW HEAD
     if (graphType === "directed") {
       ctx.beginPath();
 
@@ -165,13 +255,14 @@ const DFSVisualizer = () => {
     }
   };
 
-  // Draw Graph
+  // DRAW GRAPH
   const drawGraph = () => {
     const canvas = canvasRef.current;
 
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx =
+      canvas.getContext("2d");
 
     ctx.clearRect(
       0,
@@ -180,9 +271,10 @@ const DFSVisualizer = () => {
       canvas.height
     );
 
-    // Draw Edges
+    // DRAW EDGES
     edges.forEach((edge) => {
       const nodeA = nodes[edge[0]];
+
       const nodeB = nodes[edge[1]];
 
       if (!nodeA || !nodeB) return;
@@ -194,18 +286,38 @@ const DFSVisualizer = () => {
             active[1] === edge[1]
         );
 
-      drawArrow(
-        ctx,
-        nodeA.x,
-        nodeA.y,
-        nodeB.x,
-        nodeB.y,
-        isActive ? "yellow" : "gray",
-        isActive ? 4 : 2
-      );
+      // DIRECTED
+      if (graphType === "directed") {
+        drawArrow(
+          ctx,
+          nodeA.x,
+          nodeA.y,
+          nodeB.x,
+          nodeB.y,
+          isActive ? "yellow" : "gray",
+          isActive ? 4 : 2
+        );
+      }
+
+      // UNDIRECTED
+      else {
+        ctx.beginPath();
+
+        ctx.moveTo(nodeA.x, nodeA.y);
+
+        ctx.lineTo(nodeB.x, nodeB.y);
+
+        ctx.strokeStyle = isActive
+          ? "yellow"
+          : "gray";
+
+        ctx.lineWidth = isActive ? 4 : 2;
+
+        ctx.stroke();
+      }
     });
 
-    // Draw Nodes
+    // DRAW NODES
     nodes.forEach((node) => {
       ctx.beginPath();
 
@@ -217,12 +329,20 @@ const DFSVisualizer = () => {
         Math.PI * 2
       );
 
-      // Highlight Visited Nodes
-      if (
+      // SELECTED NODE
+      if (selectedNode === node.id) {
+        ctx.fillStyle = "orange";
+      }
+
+      // VISITED NODE
+      else if (
         visitedNodes.includes(node.id)
       ) {
         ctx.fillStyle = "red";
-      } else {
+      }
+
+      // NORMAL NODE
+      else {
         ctx.fillStyle = "white";
       }
 
@@ -249,22 +369,25 @@ const DFSVisualizer = () => {
     });
   };
 
-  // Delay Function
+  // DELAY
   const sleep = (ms) => {
     return new Promise((resolve) =>
       setTimeout(resolve, ms)
     );
   };
 
-  // DFS Traversal
+  // DFS TRAVERSAL
   const dfsTraversal = async () => {
     if (
       startNode < 0 ||
       startNode >= nodes.length
     ) {
       alert("Invalid Start Node");
+
       return;
     }
+
+    resetGraph();
 
     let visited = new Array(
       nodes.length
@@ -291,9 +414,10 @@ const DFSVisualizer = () => {
 
       for (let edge of edges) {
         let from = edge[0];
+
         let to = edge[1];
 
-        // Directed Graph
+        // DIRECTED
         if (
           from === current &&
           !visited[to]
@@ -312,7 +436,7 @@ const DFSVisualizer = () => {
           await dfs(to);
         }
 
-        // Undirected Graph
+        // UNDIRECTED
         if (
           graphType ===
             "undirected" &&
@@ -340,22 +464,30 @@ const DFSVisualizer = () => {
     setResult(traversal);
   };
 
-  // Reset Graph
+  // RESET GRAPH
   const resetGraph = () => {
     setVisitedNodes([]);
+
     setActiveEdges([]);
+
     setResult([]);
+
+    setSelectedNode(null);
   };
 
   return (
     <div className="visualizer-page">
+
+      {/* HEADER */}
       <header>
         <h1>
           Depth-First Search (DFS)
         </h1>
       </header>
 
+      {/* CONTROLS */}
       <section className="controls">
+
         <input
           type="number"
           placeholder="Enter node"
@@ -399,8 +531,34 @@ const DFSVisualizer = () => {
           Reset Graph
         </button>
 
-        {/* Graph Type */}
+        {/* MANUAL GRAPH */}
+        <button
+          onClick={() => {
+            setManualMode(!manualMode);
+
+            // ENTER MANUAL MODE
+            if (!manualMode) {
+              setNodes([]);
+
+              setEdges([]);
+
+              resetGraph();
+            }
+
+            // EXIT MANUAL MODE
+            else {
+              generateGraph("small");
+            }
+          }}
+        >
+          {manualMode
+            ? "Exit Manual Graph"
+            : "Manual Graph"}
+        </button>
+
+        {/* GRAPH TYPE */}
         <div className="radio-group">
+
           <label>
             <input
               type="radio"
@@ -414,6 +572,7 @@ const DFSVisualizer = () => {
                 )
               }
             />
+
             Directed Graph
           </label>
 
@@ -430,12 +589,14 @@ const DFSVisualizer = () => {
                 )
               }
             />
+
             Undirected Graph
           </label>
         </div>
 
-        {/* Speed Slider */}
+        {/* SPEED CONTROL */}
         <div className="speed-control">
+
           <label>
             Animation Speed:
           </label>
@@ -455,26 +616,54 @@ const DFSVisualizer = () => {
             }
           />
         </div>
+
+        {/* AI BUTTON */}
+        <button
+          className="ai-toggle-btn"
+          onClick={() =>
+            setShowChat(!showChat)
+          }
+        >
+          {showChat
+            ? "Close AlgoQuest AI"
+            : "Ask AlgoQuest AI"}
+        </button>
       </section>
 
-      {/* Graph */}
-      <div className="graph-container">
-        <canvas
-          ref={canvasRef}
-          width={700}
-          height={430}
-        />
+      {/* MAIN LAYOUT */}
+      <div className="visualizer-layout">
+
+        {/* GRAPH */}
+        <div className="graph-container">
+          <canvas
+            ref={canvasRef}
+            width={700}
+            height={430}
+            onClick={handleCanvasClick}
+          />
+        </div>
+
+        {/* CHATBOT */}
+        {showChat && (
+          <div className="chat-sidebar">
+            <AIChat />
+          </div>
+        )}
       </div>
 
-      {/* Output */}
+      {/* OUTPUT */}
       <section className="output">
-        <h2>Traversal Order:</h2>
+
+        <h2>
+          Traversal Order:
+        </h2>
 
         <p>
           {result.length > 0
             ? result.join(" → ")
             : "Nodes will appear here..."}
         </p>
+
       </section>
     </div>
   );

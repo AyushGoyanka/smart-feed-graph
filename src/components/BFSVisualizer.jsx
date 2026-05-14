@@ -1,11 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import "../styles/visualizer.css";
+import AIChat from "../components/AIChat";
 
 const BFSVisualizer = () => {
+
   const canvasRef = useRef(null);
 
+  // =========================
+  // GRAPH STATES
+  // =========================
+
   const [nodes, setNodes] = useState([]);
+
   const [edges, setEdges] = useState([]);
+
+  // =========================
+  // BFS STATES
+  // =========================
 
   const [startNode, setStartNode] =
     useState(0);
@@ -13,11 +24,9 @@ const BFSVisualizer = () => {
   const [result, setResult] =
     useState([]);
 
-  const [speed, setSpeed] =
-    useState(1000);
-
-  const [graphType, setGraphType] =
-    useState("directed");
+  // =========================
+  // VISUAL STATES
+  // =========================
 
   const [visitedNodes, setVisitedNodes] =
     useState([]);
@@ -25,12 +34,45 @@ const BFSVisualizer = () => {
   const [activeEdges, setActiveEdges] =
     useState([]);
 
+  // =========================
+  // SETTINGS
+  // =========================
+
+  const [speed, setSpeed] =
+    useState(1000);
+
+  const [graphType, setGraphType] =
+    useState("directed");
+
+  // =========================
+  // MANUAL GRAPH STATES
+  // =========================
+
+  const [manualMode, setManualMode] =
+    useState(false);
+
+  const [selectedNode, setSelectedNode] =
+    useState(null);
+
+  // =========================
+  // CHATBOT
+  // =========================
+
+  const [chatOpen, setChatOpen] =
+    useState(false);
+
+  // =========================
   // INITIAL GRAPH
+  // =========================
+
   useEffect(() => {
     generateGraph("small");
   }, []);
 
+  // =========================
   // REDRAW GRAPH
+  // =========================
+
   useEffect(() => {
     drawGraph();
   }, [
@@ -39,32 +81,43 @@ const BFSVisualizer = () => {
     visitedNodes,
     activeEdges,
     graphType,
+    selectedNode,
   ]);
 
+  // =========================
   // GENERATE GRAPH
+  // =========================
+
   const generateGraph = (size) => {
+
     const nodeCount =
       size === "small" ? 5 : 10;
 
     let tempNodes = [];
+
     let tempEdges = [];
 
     // CREATE NODES
     for (let i = 0; i < nodeCount; i++) {
+
       tempNodes.push({
         id: i,
         x: Math.random() * 500 + 80,
         y: Math.random() * 250 + 80,
       });
+
     }
 
     // CONNECT GRAPH
     for (let i = 0; i < nodeCount - 1; i++) {
+
       tempEdges.push([i, i + 1]);
+
     }
 
     // RANDOM EDGES
     for (let i = 0; i < nodeCount; i++) {
+
       let target = Math.floor(
         Math.random() * nodeCount
       );
@@ -77,29 +130,121 @@ const BFSVisualizer = () => {
             edge[1] === target
         )
       ) {
+
         tempEdges.push([i, target]);
+
       }
+
     }
 
     setNodes(tempNodes);
 
     setEdges(tempEdges);
 
-    setVisitedNodes([]);
+    resetGraph();
 
-    setActiveEdges([]);
-
-    setResult([]);
   };
 
+  // =========================
+  // MANUAL GRAPH
+  // =========================
+
+  const handleCanvasClick = (e) => {
+
+    if (!manualMode) return;
+
+    const canvas = canvasRef.current;
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+    const x = e.clientX - rect.left;
+
+    const y = e.clientY - rect.top;
+
+    // CHECK NODE CLICK
+    let clickedNode = null;
+
+    for (let node of nodes) {
+
+      const distance = Math.sqrt(
+        (node.x - x) ** 2 +
+        (node.y - y) ** 2
+      );
+
+      if (distance < 25) {
+
+        clickedNode = node.id;
+
+        break;
+
+      }
+
+    }
+
+    // CREATE NODE
+    if (clickedNode === null) {
+
+      const newNode = {
+        id: nodes.length,
+        x,
+        y,
+      };
+
+      setNodes([...nodes, newNode]);
+
+      return;
+
+    }
+
+    // SELECT NODE
+    if (selectedNode === null) {
+
+      setSelectedNode(clickedNode);
+
+    }
+
+    // CREATE EDGE
+    else {
+
+      const edgeExists = edges.some(
+        (edge) =>
+          edge[0] === selectedNode &&
+          edge[1] === clickedNode
+      );
+
+      if (
+        selectedNode !== clickedNode &&
+        !edgeExists
+      ) {
+
+        setEdges([
+          ...edges,
+          [selectedNode, clickedNode],
+        ]);
+
+      }
+
+      setSelectedNode(null);
+
+    }
+
+  };
+
+  // =========================
   // DRAW ARROW
+  // =========================
+
   const drawArrow = (
     ctx,
     fromX,
     fromY,
     toX,
-    toY
+    toY,
+    color = "gray",
+    width = 2
   ) => {
+
     const radius = 22;
 
     const angle = Math.atan2(
@@ -125,46 +270,57 @@ const BFSVisualizer = () => {
 
     ctx.lineTo(endX, endY);
 
-    ctx.strokeStyle = "gray";
+    ctx.strokeStyle = color;
 
-    ctx.lineWidth = 2;
+    ctx.lineWidth = width;
 
     ctx.stroke();
 
     // ARROW HEAD
-    const headLength = 12;
+    if (graphType === "directed") {
 
-    ctx.beginPath();
+      const headLength = 12;
 
-    ctx.moveTo(endX, endY);
+      ctx.beginPath();
 
-    ctx.lineTo(
-      endX -
+      ctx.moveTo(endX, endY);
+
+      ctx.lineTo(
+        endX -
         headLength *
-          Math.cos(angle - Math.PI / 6),
-      endY -
+        Math.cos(angle - Math.PI / 6),
+
+        endY -
         headLength *
-          Math.sin(angle - Math.PI / 6)
-    );
+        Math.sin(angle - Math.PI / 6)
+      );
 
-    ctx.lineTo(
-      endX -
+      ctx.lineTo(
+        endX -
         headLength *
-          Math.cos(angle + Math.PI / 6),
-      endY -
+        Math.cos(angle + Math.PI / 6),
+
+        endY -
         headLength *
-          Math.sin(angle + Math.PI / 6)
-    );
+        Math.sin(angle + Math.PI / 6)
+      );
 
-    ctx.closePath();
+      ctx.closePath();
 
-    ctx.fillStyle = "yellow";
+      ctx.fillStyle = color;
 
-    ctx.fill();
+      ctx.fill();
+
+    }
+
   };
 
+  // =========================
   // DRAW GRAPH
+  // =========================
+
   const drawGraph = () => {
+
     const canvas = canvasRef.current;
 
     if (!canvas) return;
@@ -178,62 +334,61 @@ const BFSVisualizer = () => {
       canvas.height
     );
 
-    // NORMAL EDGES
+    // DRAW EDGES
     edges.forEach((edge) => {
+
       const nodeA = nodes[edge[0]];
+
       const nodeB = nodes[edge[1]];
 
       if (!nodeA || !nodeB) return;
 
-      // DIRECTED
+      const isActive =
+        activeEdges.some(
+          (e) =>
+            e[0] === edge[0] &&
+            e[1] === edge[1]
+        );
+
+      // DIRECTED GRAPH
       if (graphType === "directed") {
+
         drawArrow(
           ctx,
           nodeA.x,
           nodeA.y,
           nodeB.x,
-          nodeB.y
+          nodeB.y,
+          isActive ? "yellow" : "gray",
+          isActive ? 4 : 2
         );
+
       }
 
-      // UNDIRECTED
+      // UNDIRECTED GRAPH
       else {
+
         ctx.beginPath();
 
         ctx.moveTo(nodeA.x, nodeA.y);
 
         ctx.lineTo(nodeB.x, nodeB.y);
 
-        ctx.strokeStyle = "gray";
+        ctx.strokeStyle =
+          isActive ? "yellow" : "gray";
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+          isActive ? 4 : 2;
 
         ctx.stroke();
+
       }
-    });
 
-    // ACTIVE TRAVERSAL EDGES
-    activeEdges.forEach((edge) => {
-      const nodeA = nodes[edge[0]];
-      const nodeB = nodes[edge[1]];
-
-      if (!nodeA || !nodeB) return;
-
-      ctx.beginPath();
-
-      ctx.moveTo(nodeA.x, nodeA.y);
-
-      ctx.lineTo(nodeB.x, nodeB.y);
-
-      ctx.strokeStyle = "yellow";
-
-      ctx.lineWidth = 4;
-
-      ctx.stroke();
     });
 
     // DRAW NODES
     nodes.forEach((node) => {
+
       ctx.beginPath();
 
       ctx.arc(
@@ -244,16 +399,27 @@ const BFSVisualizer = () => {
         Math.PI * 2
       );
 
+      // SELECTED NODE
+      if (selectedNode === node.id) {
+
+        ctx.fillStyle = "orange";
+
+      }
+
       // VISITED NODE
-      if (
+      else if (
         visitedNodes.includes(node.id)
       ) {
+
         ctx.fillStyle = "#1565c0";
+
       }
 
       // NORMAL NODE
       else {
+
         ctx.fillStyle = "white";
+
       }
 
       ctx.fill();
@@ -264,7 +430,10 @@ const BFSVisualizer = () => {
 
       ctx.stroke();
 
-      ctx.fillStyle = "black";
+      ctx.fillStyle =
+        visitedNodes.includes(node.id)
+          ? "white"
+          : "black";
 
       ctx.font = "16px Arial";
 
@@ -273,25 +442,41 @@ const BFSVisualizer = () => {
         node.x - 5,
         node.y + 5
       );
+
     });
+
   };
 
+  // =========================
   // DELAY
+  // =========================
+
   const sleep = (ms) => {
+
     return new Promise((resolve) =>
       setTimeout(resolve, ms)
     );
+
   };
 
+  // =========================
   // BFS TRAVERSAL
+  // =========================
+
   const bfsTraversal = async () => {
+
     if (
       startNode < 0 ||
       startNode >= nodes.length
     ) {
+
       alert("Invalid Start Node");
+
       return;
+
     }
+
+    resetGraph();
 
     let visited = new Array(
       nodes.length
@@ -301,114 +486,138 @@ const BFSVisualizer = () => {
 
     let traversal = [];
 
-    let highlighted = [];
+    let highlightedNodes = [];
 
-    let traversedEdges = [];
+    let highlightedEdges = [];
 
     visited[startNode] = true;
 
     while (queue.length > 0) {
+
       let current = queue.shift();
 
       traversal.push(current);
 
-      highlighted.push(current);
+      highlightedNodes.push(current);
 
       setVisitedNodes([
-        ...highlighted,
+        ...highlightedNodes,
       ]);
 
       await sleep(speed);
 
-      edges.forEach((edge) => {
-        const from = edge[0];
+      for (let edge of edges) {
 
-        const to = edge[1];
+        let from = edge[0];
+
+        let to = edge[1];
 
         // DIRECTED GRAPH
-        if (
-          graphType === "directed"
-        ) {
+        if (graphType === "directed") {
+
           if (
             from === current &&
             !visited[to]
           ) {
+
             visited[to] = true;
 
             queue.push(to);
 
-            traversedEdges.push([
+            highlightedEdges.push([
               from,
               to,
             ]);
 
             setActiveEdges([
-              ...traversedEdges,
+              ...highlightedEdges,
             ]);
+
           }
+
         }
 
         // UNDIRECTED GRAPH
         else {
+
           if (
             from === current &&
             !visited[to]
           ) {
+
             visited[to] = true;
 
             queue.push(to);
 
-            traversedEdges.push([
+            highlightedEdges.push([
               from,
               to,
             ]);
 
             setActiveEdges([
-              ...traversedEdges,
+              ...highlightedEdges,
             ]);
+
           }
 
           else if (
             to === current &&
             !visited[from]
           ) {
+
             visited[from] = true;
 
             queue.push(from);
 
-            traversedEdges.push([
+            highlightedEdges.push([
               to,
               from,
             ]);
 
             setActiveEdges([
-              ...traversedEdges,
+              ...highlightedEdges,
             ]);
+
           }
+
         }
-      });
+
+      }
+
     }
 
     setResult(traversal);
+
   };
 
+  // =========================
   // RESET GRAPH
+  // =========================
+
   const resetGraph = () => {
+
     setVisitedNodes([]);
 
     setActiveEdges([]);
 
     setResult([]);
+
+    setSelectedNode(null);
+
   };
 
   return (
+
     <div className="visualizer-page">
+
+      {/* HEADER */}
       <header>
         <h1>
           Breadth-First Search (BFS)
         </h1>
       </header>
 
+      {/* CONTROLS */}
       <section className="controls">
 
         {/* START NODE */}
@@ -423,11 +632,12 @@ const BFSVisualizer = () => {
           }
         />
 
-        {/* BUTTONS */}
+        {/* RUN BFS */}
         <button onClick={bfsTraversal}>
           Run BFS
         </button>
 
+        {/* RANDOM GRAPH */}
         <button
           onClick={() =>
             generateGraph("small")
@@ -444,6 +654,7 @@ const BFSVisualizer = () => {
           Large Graph
         </button>
 
+        {/* NEW GRAPH */}
         <button
           onClick={() =>
             generateGraph("small")
@@ -452,8 +663,39 @@ const BFSVisualizer = () => {
           New Graph
         </button>
 
+        {/* RESET */}
         <button onClick={resetGraph}>
           Reset Graph
+        </button>
+
+        {/* MANUAL GRAPH */}
+        <button
+          onClick={() => {
+
+            setManualMode(!manualMode);
+
+            if (!manualMode) {
+
+              setNodes([]);
+              setEdges([]);
+              setVisitedNodes([]);
+              setActiveEdges([]);
+              setResult([]);
+              setSelectedNode(null);
+
+            }
+
+            else {
+
+              generateGraph("small");
+
+            }
+
+          }}
+        >
+          {manualMode
+            ? "Exit Manual Mode"
+            : "Manual Graph"}
         </button>
 
         {/* GRAPH TYPE */}
@@ -472,7 +714,6 @@ const BFSVisualizer = () => {
                 )
               }
             />
-
             Directed Graph
           </label>
 
@@ -489,13 +730,14 @@ const BFSVisualizer = () => {
                 )
               }
             />
-
             Undirected Graph
           </label>
+
         </div>
 
         {/* SPEED */}
         <div className="speed-control">
+
           <label>
             Animation Speed:
           </label>
@@ -514,20 +756,54 @@ const BFSVisualizer = () => {
               )
             }
           />
+
         </div>
+
+        {/* AI BUTTON */}
+        <button
+          className="ai-toggle-btn"
+          onClick={() =>
+            setChatOpen(!chatOpen)
+          }
+        >
+          {chatOpen
+            ? "Close AlgoQuest AI"
+            : "Ask AlgoQuest AI"}
+        </button>
+
       </section>
 
-      {/* GRAPH AREA */}
-      <div className="graph-container">
-        <canvas
-          ref={canvasRef}
-          width={700}
-          height={430}
-        />
+      {/* GRAPH + CHAT */}
+      <div className="visualizer-layout">
+
+        {/* GRAPH */}
+        <div className="graph-container">
+
+          <canvas
+            ref={canvasRef}
+            width={700}
+            height={430}
+            onClick={handleCanvasClick}
+          />
+
+        </div>
+
+        {/* CHATBOT */}
+        {chatOpen && (
+
+          <div className="chatbot-panel">
+
+            <AIChat />
+
+          </div>
+
+        )}
+
       </div>
 
       {/* OUTPUT */}
       <section className="output">
+
         <h2>Traversal Order:</h2>
 
         <p>
@@ -535,9 +811,13 @@ const BFSVisualizer = () => {
             ? result.join(" → ")
             : "Nodes will appear here..."}
         </p>
+
       </section>
+
     </div>
+
   );
+
 };
 
 export default BFSVisualizer;

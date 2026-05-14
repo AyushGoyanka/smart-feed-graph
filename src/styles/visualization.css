@@ -61,3 +61,12 @@
 
   transform: translateY(-3px);
 }
+
+
+.main-layout{
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}

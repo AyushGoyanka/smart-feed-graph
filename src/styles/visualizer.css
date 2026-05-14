@@ -183,3 +183,79 @@ canvas {
     height: auto;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* LAYOUT */
+.visualizer-layout {
+  display: flex;
+  gap: 25px;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+/* AI BUTTON */
+.ai-toggle-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.ai-toggle-btn {
+  background: linear-gradient(
+    135deg,
+    #6a5cff,
+    #8f44fd
+  );
+
+  color: white;
+
+  border: none;
+
+  padding: 14px 24px;
+
+  border-radius: 12px;
+
+  font-size: 18px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.ai-toggle-btn:hover {
+  transform: scale(1.05);
+}
+
+/* CHAT PANEL */
+.chat-panel {
+  width: 420px;
+
+  min-width: 420px;
+
+  height: 650px;
+
+  background: #111827;
+
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* GRAPH CONTAINER */
+.graph-container {
+  flex: 1;
+}
