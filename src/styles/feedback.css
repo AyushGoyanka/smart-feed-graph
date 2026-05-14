@@ -1,0 +1,53 @@
+.feedback-section {
+  padding: 80px 10%;
+  background: #161b22;
+}
+
+.feedback-section h2 {
+  text-align: center;
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #58a6ff;
+}
+
+.feedback-section p {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #c9d1d9;
+}
+
+.feedback-section form {
+  max-width: 700px;
+  margin: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feedback-section input,
+.feedback-section textarea {
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+.feedback-section button {
+  padding: 15px;
+  background: #238636;
+  color: white;
+  border-radius: 10px;
+  font-size: 18px;
+}
+
+.feedback-section button:hover {
+  background: #2ea043;
+}
+
+.feedback-response {
+  margin-top: 20px;
+  text-align: center;
+  color: #58a6ff;
+}

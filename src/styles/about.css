@@ -1,0 +1,71 @@
+.about-section {
+  padding: 100px 10%;
+  background: #0d1117;
+}
+
+.about-container {
+  max-width: 1300px;
+  margin: auto;
+}
+
+.about-section h2 {
+  text-align: center;
+
+  font-size: 3.5rem;
+  color: #58a6ff;
+
+  margin-bottom: 30px;
+}
+
+.about-section p {
+  text-align: center;
+
+  color: #c9d1d9;
+
+  font-size: 1.2rem;
+  line-height: 1.8;
+
+  max-width: 950px;
+  margin: auto;
+}
+
+.about-cards {
+  margin-top: 70px;
+
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+
+  flex-wrap: wrap;
+}
+
+.about-card {
+  width: 320px;
+
+  background: #161b22;
+
+  padding: 35px;
+
+  border-radius: 20px;
+
+  transition: 0.3s;
+
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+.about-card:hover {
+  transform: translateY(-10px);
+}
+
+.about-card h3 {
+  color: #58a6ff;
+
+  margin-bottom: 20px;
+
+  font-size: 1.5rem;
+}
+
+.about-card p {
+  font-size: 1rem;
+  line-height: 1.7;
+}
